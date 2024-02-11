@@ -321,7 +321,6 @@ fn use_preconfigured_rustls_default() {
 
     let root_cert_store = rustls::RootCertStore::empty();
     let tls = rustls::ClientConfig::builder()
-        .with_safe_defaults()
         .with_root_certificates(root_cert_store)
         .with_no_client_auth();
 

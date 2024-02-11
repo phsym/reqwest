@@ -366,7 +366,7 @@ impl Connector {
                 tls_proxy,
             } => {
                 if dst.scheme() == Some(&Scheme::HTTPS) {
-                    use rustls::ServerName;
+                    use rustls::pki_types::ServerName;
                     use std::convert::TryFrom;
                     use tokio_rustls::TlsConnector as RustlsConnector;
 
@@ -378,7 +378,7 @@ impl Connector {
                     let conn = http.call(proxy_dst).await?;
                     log::trace!("tunneling HTTPS over proxy");
                     let maybe_server_name =
-                        ServerName::try_from(host.as_str()).map_err(|_| "Invalid Server Name");
+                        ServerName::try_from(host.clone()).map_err(|_| "Invalid Server Name");
                     let tunneled = tunnel(conn, host, port, self.user_agent.clone(), auth).await?;
                     let server_name = maybe_server_name?;
                     let io = RustlsConnector::from(tls)
@@ -530,7 +530,7 @@ impl TlsInfoFactory for tokio_rustls::TlsStream<tokio::net::TcpStream> {
             .1
             .peer_certificates()
             .and_then(|certs| certs.first())
-            .map(|c| c.0.clone());
+            .map(|c| c.to_vec());
         Some(crate::tls::TlsInfo { peer_certificate })
     }
 }
@@ -545,7 +545,7 @@ impl TlsInfoFactory
             .1
             .peer_certificates()
             .and_then(|certs| certs.first())
-            .map(|c| c.0.clone());
+            .map(|c| c.to_vec());
         Some(crate::tls::TlsInfo { peer_certificate })
     }
 }
@@ -558,7 +558,7 @@ impl TlsInfoFactory for tokio_rustls::client::TlsStream<tokio::net::TcpStream> {
             .1
             .peer_certificates()
             .and_then(|certs| certs.first())
-            .map(|c| c.0.clone());
+            .map(|c| c.to_vec());
         Some(crate::tls::TlsInfo { peer_certificate })
     }
 }
